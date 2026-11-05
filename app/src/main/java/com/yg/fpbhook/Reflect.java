@@ -1,5 +1,7 @@
 package com.yg.fpbhook;
 
+import android.content.Context;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -144,5 +146,31 @@ final class Reflect {
             }
         }
         return null;
+    }
+
+    /** 目标进程的 Application；拿不到时返回 null，缓存与 Toast 会自动跳过 */
+    static Context appContext() {
+        try {
+            Class<?> at = Class.forName("android.app.ActivityThread");
+            java.lang.reflect.Method m = at.getDeclaredMethod("currentApplication");
+            m.setAccessible(true);
+            Object app = m.invoke(null);
+            return app instanceof Context ? (Context) app : null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** 目标应用当前 versionCode；用于让缓存随版本自动失效 */
+    @SuppressWarnings("deprecation")
+    static int versionCode(Context ctx) {
+        if (ctx == null) return -1;
+        try {
+            android.content.pm.PackageInfo pi =
+                    ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+            return pi.versionCode;
+        } catch (Throwable t) {
+            return -1;
+        }
     }
 }
