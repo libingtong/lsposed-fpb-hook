@@ -40,7 +40,7 @@ public final class HookEntry extends XposedModule {
     private static final String[] HOST_CANDIDATES = {"di.c", "hi.c", "dj.c", "ki.c", "ji.c"};
 
     /** 调试用：置 true 可跳过 L0/L1，强制测量深度扫描耗时 */
-    private static final boolean FORCE_DEEP_SCAN = true;
+    private static final boolean FORCE_DEEP_SCAN = false;
 
     /** 扫描耗时超过该值才弹提示，避免打扰 */
     private static final long SLOW_SCAN_MS = 2000L;
@@ -220,6 +220,10 @@ public final class HookEntry extends XposedModule {
         final Context ctx = appCtx;
         new Thread(() -> {
             long start = System.currentTimeMillis();
+            final Handler main = new Handler(Looper.getMainLooper());
+            // 只有在扫描真的慢时才打扰用户；实测通常 100~300ms，不会触发
+            final Runnable hint = () -> toast("VIP 模块：正在适配新版本，请稍候");
+            if (ctx != null) main.postDelayed(hint, 800L);
             try {
                 java.util.List<String> names = Reflect.allClassNames(cl);
                 log(Log.INFO, TAG, "深度扫描：枚举到 " + names.size() + " 个类名");
@@ -228,8 +232,6 @@ public final class HookEntry extends XposedModule {
                     toast("VIP 模块：无法深度定位，功能可能受限");
                     return;
                 }
-                log(Log.INFO, TAG, "深度扫描进行中…");
-                if (ctx != null) toast("VIP 模块：正在适配新版本，请稍候");
 
                 Class<?> host = Reflect.findHostByNames(names, cl, vipType, start + 30000L);
                 long cost = System.currentTimeMillis() - start;
@@ -249,6 +251,8 @@ public final class HookEntry extends XposedModule {
                 }
             } catch (Throwable t) {
                 log(Log.WARN, TAG, "深度扫描异常: " + t);
+            } finally {
+                main.removeCallbacks(hint);
             }
         }, "fpb-deep-scan").start();
     }
