@@ -40,7 +40,7 @@ public final class HookEntry extends XposedModule {
     private static final String[] HOST_CANDIDATES = {"di.c", "hi.c", "dj.c", "ki.c", "ji.c"};
 
     /** 调试用：置 true 可跳过 L0/L1，强制测量深度扫描耗时 */
-    private static final boolean FORCE_DEEP_SCAN = false;
+    private static final boolean FORCE_DEEP_SCAN = true;
 
     /** 扫描耗时超过该值才弹提示，避免打扰 */
     private static final long SLOW_SCAN_MS = 2000L;
