@@ -7,15 +7,16 @@ val ksPath: String? = System.getenv("KEYSTORE_PATH")
 val hasKeystore: Boolean = ksPath != null && file(ksPath).exists()
 
 android {
-    namespace = "com.yg.fpbhook"
+    namespace = "io.github.libingtong.fpbhook"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.yg.fpbhook"
+        // Xposed-Modules-Repo 要求 applicationId 使用自有域名或 io.github.<username> 前缀
+        applicationId = "io.github.libingtong.fpbhook"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     signingConfigs {
@@ -69,3 +70,4 @@ android {
 dependencies {
     compileOnly(libs.libxposed.api)
 }
+

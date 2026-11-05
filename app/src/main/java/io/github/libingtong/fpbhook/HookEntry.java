@@ -1,4 +1,4 @@
-package com.yg.fpbhook;
+package io.github.libingtong.fpbhook;
 
 import android.content.Context;
 import android.os.Handler;
@@ -348,3 +348,4 @@ public final class HookEntry extends XposedModule {
         return true;
     }
 }
+

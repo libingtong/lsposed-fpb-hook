@@ -1,4 +1,4 @@
-package com.yg.fpbhook;
+package io.github.libingtong.fpbhook;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -191,3 +191,4 @@ public class MainActivity extends Activity {
         return Math.round(getResources().getDisplayMetrics().density * v);
     }
 }
+

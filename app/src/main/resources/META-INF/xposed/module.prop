@@ -1,3 +1,10 @@
+id=io.github.libingtong.fpbhook
+name=发票盒子 VIP
+version=1.2
+versionCode=3
+author=libingtong
+description=发票盒子会员功能增强：PDF 高清导出、A4 拼版、标签数量、批量选择、附单额度、抬头筛选。基于类型锚点与 dex 深度扫描自动适配混淆变化，版本升级无需改代码。
+
 minApiVersion=101
 targetApiVersion=102
 staticScope=true
