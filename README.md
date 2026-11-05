@@ -191,6 +191,55 @@ hook 写入器 c.Y(VipInfoBean)
 
 若出现 `候选宿主未命中，启动深度搜索` + `深度搜索命中宿主 xxx`，说明新版本改了混淆名，但模块已自动适配。
 
+## 隐藏桌面图标
+
+设置页里有一个「隐藏桌面图标」开关，也可以用 adb 直接控制：
+
+```bash
+# 隐藏
+adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide true -f 0x20000000
+
+# 恢复
+adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide false -f 0x20000000
+```
+
+`-f 0x20000000` 是 `FLAG_ACTIVITY_SINGLE_TOP`；Activity 已在栈顶时需要它才会走 `onNewIntent`，否则 intent 会被直接投递而 extra 不生效。
+
+**实现**：桌面入口不是 `MainActivity` 本身，而是 `AndroidManifest.xml` 里的 `activity-alias`：
+
+```xml
+<activity android:name=".MainActivity" android:exported="true" />
+
+<activity-alias
+    android:name=".LauncherEntry"
+    android:targetActivity=".MainActivity"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity-alias>
+```
+
+开关通过 `PackageManager.setComponentEnabledSetting` 启用/禁用 `.LauncherEntry`。
+
+**`MainActivity` 始终保留可启动**，所以图标隐藏后：
+
+- 模块功能完全不受影响（LSPosed 靠 `META-INF/xposed` 识别，与桌面图标无关）
+- 仍可从 LSPosed 管理器打开，或用 `adb shell am start -n com.yg.fpbhook/.MainActivity`
+
+状态同时写入 `SharedPreferences`（`hide_launcher`），重启后开关显示与组件实际状态一致。
+
+实测：
+
+```
+初始            -> com.yg.fpbhook/.LauncherEntry
+hide true       -> No activity found        （图标消失）
+hide false      -> com.yg.fpbhook/.LauncherEntry   （恢复）
+```
+
+> 注：部分 ROM 的 `pm disable-user`/`pm enable` 对 `activity-alias` 不生效（实测 ColorOS 会返回 `new state: default`），必须由应用自身调用 `setComponentEnabledSetting`，这也是本模块的做法。
+
 ## 覆盖范围
 
 本地可解锁：PDF 导出清晰度、三/四张 A4 拼版、标签数量、批量选择 10 张、附单 20 张、抬头筛选、通用模板保存、默认收票邮箱、会员卡片与到期文案。
