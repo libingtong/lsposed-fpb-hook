@@ -5,15 +5,24 @@
         android:label="发票盒子 VIP"
         android:hasCode="true">
 
+        <!-- 真正的入口，始终可启动（LSPosed 管理器 / adb am start 均可用） -->
         <activity
             android:name=".MainActivity"
+            android:exported="true"
+            android:label="发票盒子 VIP" />
+
+        <!-- 桌面图标由这个 alias 提供，可在应用内开关 -->
+        <activity-alias
+            android:name=".LauncherEntry"
+            android:targetActivity=".MainActivity"
             android:exported="true"
             android:label="发票盒子 VIP">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+
     </application>
 
 </manifest>
