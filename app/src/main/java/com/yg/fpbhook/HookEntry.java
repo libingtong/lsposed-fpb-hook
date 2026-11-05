@@ -110,8 +110,42 @@ public final class HookEntry extends XposedModule {
             hookIntNoArg(vipType, "expired", 0);
             hookStringNoArg(vipType, "expire", FAR);
             log(Log.INFO, TAG, "响应层/属性层装配完成，用时 " + (System.currentTimeMillis() - t0) + "ms");
+
+            // Context 的可靠来源：Application.onCreate 一定早于业务网络请求
+            hookApplicationCreate();
         } catch (Throwable t) {
             log(Log.ERROR, TAG, "installHooks 失败", t);
+        }
+    }
+
+    /**
+     * hook Application.onCreate 拿到 Application 实例。
+     * libxposed 的 onPackageReady 在部分设备/Rom 上不一定回调，
+     * 而 Application.onCreate 是必过的早起点，用它作为 Context 的主来源。
+     */
+    private void hookApplicationCreate() {
+        try {
+            Class<?> appCls = Class.forName("android.app.Application");
+            Method onCreate = appCls.getDeclaredMethod("onCreate");
+            onCreate.setAccessible(true);
+            hook(onCreate).intercept(chain -> {
+                Object result = chain.proceed();
+                try {
+                    Object self = chain.getThisObject();
+                    if (self instanceof Context && appCtx == null) {
+                        appCtx = (Context) self;
+                        log(Log.INFO, TAG, "从 Application.onCreate 捕获 Context: "
+                                + ((Context) self).getPackageName());
+                        installHost();
+                    }
+                } catch (Throwable t) {
+                    log(Log.WARN, TAG, "onCreate 内绑定失败: " + t);
+                }
+                return result;
+            });
+            log(Log.INFO, TAG, "已 hook Application.onCreate 以获取 Context");
+        } catch (Throwable t) {
+            log(Log.WARN, TAG, "hook Application.onCreate 失败: " + t);
         }
     }
 
