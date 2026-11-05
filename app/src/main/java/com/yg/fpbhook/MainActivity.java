@@ -131,6 +131,16 @@ public class MainActivity extends Activity {
         root.addView(usage, usageLp);
 
         setContentView(scroll);
+
+        // adb 可控入口（对用户在锁屏/无界面场景下也有用）：
+        //   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide true
+        //   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide false
+        Bundle extra = getIntent() != null ? getIntent().getExtras() : null;
+        if (extra != null && extra.containsKey("hide")) {
+            boolean hide = extra.getBoolean("hide");
+            applyLauncherHidden(hide);
+            if (hideSwitch != null) hideSwitch.setChecked(hide);
+        }
     }
 
     private ComponentName launcherAlias() {
