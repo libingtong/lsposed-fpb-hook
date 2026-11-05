@@ -132,15 +132,27 @@ public class MainActivity extends Activity {
 
         setContentView(scroll);
 
-        // adb 可控入口（对用户在锁屏/无界面场景下也有用）：
-        //   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide true
-        //   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide false
-        Bundle extra = getIntent() != null ? getIntent().getExtras() : null;
-        if (extra != null && extra.containsKey("hide")) {
-            boolean hide = extra.getBoolean("hide");
-            applyLauncherHidden(hide);
-            if (hideSwitch != null) hideSwitch.setChecked(hide);
-        }
+        handleHideExtra(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleHideExtra(intent);
+    }
+
+    /**
+     * adb 可控入口（锁屏/无界面场景下也有用）：
+     *   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide true
+     *   adb shell am start -n com.yg.fpbhook/.MainActivity --ez hide false
+     */
+    private void handleHideExtra(android.content.Intent intent) {
+        Bundle extra = intent != null ? intent.getExtras() : null;
+        if (extra == null || !extra.containsKey("hide")) return;
+        boolean hide = extra.getBoolean("hide");
+        applyLauncherHidden(hide);
+        if (hideSwitch != null) hideSwitch.setChecked(hide);
     }
 
     private ComponentName launcherAlias() {
