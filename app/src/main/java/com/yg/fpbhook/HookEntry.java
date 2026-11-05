@@ -159,8 +159,9 @@ public final class HookEntry extends XposedModule {
 
     /* ---------------- hook 原语 ---------------- */
 
-    /** 该类所有「无参且返回 ret」的实例方法 -> 固定返回 value */
+    /** 该类所有「无参且返回 ret」的实例方法 -> 固定返回 value（全部 hook，不只第一个） */
     private void hookReturning(Class<?> owner, Class<?> ret, final Object value) {
+        int n = 0;
         for (Method m : owner.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) continue;
             if (m.getParameterCount() != 0) continue;
@@ -168,13 +169,13 @@ public final class HookEntry extends XposedModule {
             if (!installable(m)) continue;
             try {
                 hook(m).intercept(chain -> value);
+                n++;
                 log(Log.INFO, TAG, "hook " + owner.getSimpleName() + "." + m.getName() + "() -> 合成对象");
-                // 同一声明类只处理一个即可，避免重复 hook 同一属性的多个别名
-                return;
             } catch (Throwable t) {
                 log(Log.WARN, TAG, "hook " + m.getName() + " 失败: " + t);
             }
         }
+        if (n == 0) log(Log.WARN, TAG, owner.getSimpleName() + " 未发现返回 VipInfoBean 的无参方法");
     }
 
     /** 名字包含 keyword 的无参 int 方法 -> 常量 */
