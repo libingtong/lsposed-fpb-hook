@@ -23,13 +23,15 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept licenses and install platform
+      - name: Install Android platform 35
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "SDK=$SDK"
+          SDKMAN=$(find "$SDK/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -1)
+          echo "sdkmanager=$SDKMAN"
+          yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
+          "$SDKMAN" --install "platforms;android-35" "build-tools;35.0.0" 2>&1 | tail -3
+          ls "$SDK/platforms"
 
       - name: Decode release keystore
         run: |
@@ -49,7 +51,8 @@ jobs:
         run: |
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
           echo "APK=$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs -v "$APK"
+          BT=$(ls -d "${ANDROID_HOME}"/build-tools/*/ | sort -V | tail -1)
+          "${BT}apksigner" verify --print-certs -v "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
